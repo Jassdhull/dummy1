@@ -5,7 +5,6 @@ from datetime import date
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 
-
 st.title("📈 LTV Prediction")
 
 st.markdown('''
@@ -38,41 +37,24 @@ col1, col2 = st.columns([1, 1])
 with col1:
     st.header("Retention Rates")
 
-    #day_1_retention = st.text_input('Type in your Day 1 retention %', '30.5')
-    day_1_retention = st.number_input('Type in your Day 1 retention %', min_value = 0.0, max_value = 100.0, value = 30.5)
-    #st.write('Day 1 Retention %: ', float(day_1_retention))
-    
-    #day_7_retention = st.text_input('Type in your Day 7 retention %', '10.1')
-    day_7_retention = st.number_input('Type in your Day 7 retention %', min_value = 0.0, max_value = 100.0, value = 10.5)
-    #st.write('Day 7 Retention %: ', float(day_7_retention))
-    
-    #day_30_retention = st.text_input('Type in your Day 30 retention %', '2.4')
-    day_30_retention = st.number_input('Type in your Day 30 retention %', min_value = 0.0, max_value = 100.0, value = 3.5)
-    #st.write('Day 30 Retention %: ', float(day_30_retention))
-
+    day_1_retention = st.number_input('Type in your Day 1 retention %', min_value=0.0, max_value=100.0, value=30.5)
+    day_7_retention = st.number_input('Type in your Day 7 retention %', min_value=0.0, max_value=100.0, value=10.5)
+    day_30_retention = st.number_input('Type in your Day 30 retention %', min_value=0.0, max_value=100.0, value=3.5)
 
 with col2:
     st.header("ARPDAU, CPI, ROAS")
-    
-    #arpdau = st.text_input('Type in your ARPDAU USD', '2.34')
-    arpdau = st.number_input('Type in your ARPDAU USD', min_value = 0.0, max_value = 100.0, value = 0.5)
-    arpdau = float(arpdau)
-    #st.write('ARPDAU $: ', arpdau)
-    
-    #cpi = st.text_input('Type in your CPI USD', '4.89')
-    cpi = st.number_input('Type in your CPI USD', min_value = 0.0, max_value = 100.0, value = 1.0)
-    cpi = float(cpi)
-    #st.write('CPI $: ', cpi)
-    
-    #roas = st.text_input('Type in your ROAS goal %', '120')
-    roas = st.number_input('Type in your ROAS goal %', min_value = 0.0, max_value = 500.0, value = 120.0)
-    roas = int(roas)
-    #st.write('ROAS % Goal: ', roas)
 
+    arpdau = st.number_input('Type in your ARPDAU USD', min_value=0.0, max_value=100.0, value=0.5)
+    arpdau = float(arpdau)
+
+    cpi = st.number_input('Type in your CPI USD', min_value=0.0, max_value=100.0, value=1.0)
+    cpi = float(cpi)
+
+    roas = st.number_input('Type in your ROAS goal %', min_value=0.0, max_value=500.0, value=120.0)
+    roas = int(roas)
 
 st.header("Predicted Day in the future")
-end_day = st.number_input('Type in the end day for your prediction, e.g. 30, 60, 360', min_value = 0, max_value = 360, value = 90)
-
+end_day = st.number_input('Type in the end day for your prediction, e.g. 30, 60, 360', min_value=0, max_value=360, value=90)
 
 # Read the CSV file into DataFrame
 url_retention = "https://raw.githubusercontent.com/svenjuergens84/ltv-prediction/main/final_retention_clean_row_grouped.csv"
@@ -87,8 +69,6 @@ url_arpdau = "https://raw.githubusercontent.com/svenjuergens84/ltv-prediction/ma
 grouped_arpdau_df = pd.read_csv(url_arpdau, usecols=['metric', 'geo', 'genre_name', 'value'])
 grouped_arpdau_df = grouped_arpdau_df.rename(columns={'value': 'arpdau_value'})
 
-
-
 st.header("Game Retention Benchmarks")
 st.write("❤️ The benchmarks are shared by the awesome folks at https://gameanalytics.com")
 st.write("If you don't have a game, just leave it as default. This will not influence your LTV calculation")
@@ -96,7 +76,6 @@ st.write("If you don't have a game, just leave it as default. This will not infl
 # Streamlit UI components for selecting genre and geo
 selected_genre = st.selectbox("Select your game genre:", genre_names)
 selected_geo = st.selectbox("Select your main geo:", geo_names)
-
 
 def filter_data(selected_genre, selected_geo):
     filtered_data = grouped_df[(grouped_df['genre_name'] == selected_genre) & 
@@ -118,7 +97,6 @@ benchmark_x = selected_data["day"]
 benchmark_y = selected_data["retention_value"]/100
 benchmark_arpdau = selected_arpdau_data[selected_arpdau_data['metric'] == 'arpdau']['arpdau_value'].values[0]
 
-
 # Display the filtered DataFrame
 st.write(selected_data)
 st.write(selected_arpdau_data)
@@ -132,7 +110,6 @@ y = [float(day_1_retention)/100,
 
 currency = "$"
 
-
 def PrintCurrentSettings(arpdau, cpi, roas, x_values, y_values):
     print("CURRENT SETTINGS:")
     print("ARPDAU $: " + str(arpdau))
@@ -142,16 +119,13 @@ def PrintCurrentSettings(arpdau, cpi, roas, x_values, y_values):
     print("DAYS: " + str(x_values))
     print("----------")
 
-
 def PowerLawFunction(x, a, b):
     return a * x** -b
-
 
 def FindNewY(a, b, x):
     #y = ax^b
     new_y = a * x** -b
     return new_y
-
 
 def GetLTV(arpdau, end_day, x_values, y_values):
     sum_list = []
@@ -162,7 +136,6 @@ def GetLTV(arpdau, end_day, x_values, y_values):
     ltv = sum(sum_list) * arpdau
     ltv = round(ltv, 3)
     return ltv
-
 
 def GetStandardDayLTV(arpdau, x_values, y_values):
     ltv_dict = {}
@@ -181,141 +154,121 @@ def GetStandardDayLTV(arpdau, x_values, y_values):
     print("----------")
     return ltv_dict
 
-
 def GetDetailedDayLTV(arpdau, x_values, y_values, end_day_obj):
     ltv_dict = {}
-    #print("")
-    #print("LTV OVERVIEW:")
-    #day_list = [1, 3, 7, 14, 30, 60, 90, 360] #provide a list with days that should be printed out 
     sum_list = []
     sum_list.append(1)
-    for day in range(1, 721): #provide a range that should be searched by to find the LTV per day (should be higher than max num of day_list)
+    for day in range(1, 721): 
         y_value = FindNewY(GetParametersOfCurveFit(x_values, y_values)[0], GetParametersOfCurveFit(x_values, y_values)[1], day)
         sum_list.append(y_value)
     for x in range(end_day_obj):
         ltv_estimate = sum(sum_list[0:x+1]) * arpdau
         ltv_dict[x] = round(ltv_estimate, 2)
-        #print("LTV (D" + str(x) + ") $: " + str(round(ltv_estimate, 2)))
-    #print("----------")
     return ltv_dict
-
 
 def GetLifetimeDays(end_day, x_values, y_values):
     sum_list = []
     for i in range(1, end_day):
         y_value = FindNewY(GetParametersOfCurveFit(x_values, y_values)[0], GetParametersOfCurveFit(x_values, y_values)[1], i)
         sum_list.append(y_value)
-    sum_list.append(1)
-    lifetime_days = sum(sum_list)
-    lifetime_days = round(lifetime_days, 2)
-    return lifetime_days
+    lifetime = round(sum(sum_list), 3)
+    return lifetime
 
+def ROASCalculator(ltv, cpi):
+    roas = round(ltv / cpi * 100, 3)
+    return roas
 
-def FindRecoupCPIDay(arpdau_value, cpi_value, roas_goal, end_day, x_values, y_values):
+def CalculateBreakEvenDay(x_values, y_values, roas_goal, arpdau, cpi):
+    print("")
+    print("BREAK EVEN DAY OVERVIEW:")
     sum_list = []
     sum_list.append(1)
-    print("")
-    print("CPI RECOUPING OVERVIEW:")
-    print("ARPDAU: " + str(arpdau_value))
-    print("CPI: " + str(cpi_value))
-    print("ROAS Goal: " + str(roas_goal))
-    print("End Day: " + str(end_day))
-    print("X Values: " + str(x_values))
-    print("Y Values: " + str(y_values))
-    exp_ltv = roas_goal / 100 * cpi_value
-    print("Expected LTV: " + str(exp_ltv))
-
-    for day in range(1, end_day):
-        y_value = FindNewY(GetParametersOfCurveFit(x_values, y_values)[0], GetParametersOfCurveFit(x_values, y_values)[1], day)
+    for i in range(1, 721):
+        y_value = FindNewY(GetParametersOfCurveFit(x_values, y_values)[0], GetParametersOfCurveFit(x_values, y_values)[1], i)
         sum_list.append(y_value)
-        current_ltv = sum(sum_list) * arpdau_value
-        current_roas = (current_ltv / cpi_value) * 100
-        if current_roas > roas_goal: #we do find a value within the given timeframe, aka. the CPI will recoup
-            print("")
-            print("Days needed to recoup CPI: " + str(day))
-            print("LTV (D" + str(day) +  ") $: " + str(round(current_ltv, 2)))
-            print("Observed ROAS(D" + str(day) +  ") %: " + str(round(current_roas, 2)))
-            print("")
-            print("----------")
-            return day
-        
-    print("You will not recoup the CPI with the given settings")
-    day = 0
-    return day
-            
+        ltv = sum(sum_list) * arpdau
+        roas = ROASCalculator(ltv, cpi)
+        if roas >= roas_goal:
+            break_even_day = i
+            print("Break Even Day with ROAS goal of " + str(roas_goal) + "%: D" + str(break_even_day))
+            print("LTV: $" + str(round(ltv, 3)))
+            print("ROAS: " + str(roas) + "%")
+            break
+        else:
+            break_even_day = 0
+    print("----------")
+    return break_even_day
 
 def GetParametersOfCurveFit(x_values, y_values):
-    popt, pcov = curve_fit(PowerLawFunction,  x_values,  y_values)
-    #How to use the return in other functions
-    #a_param = popt[0]
-    #b_param = popt[1]
-    #power_y = popt[0]*x**-popt[1]
-    return popt
+    parameters = curve_fit(PowerLawFunction, x_values, y_values)
+    a = parameters[0][0]
+    b = parameters[0][1]
+    return [a, b]
 
+PrintCurrentSettings(arpdau, cpi, roas, x, y)
 
-def GetPowerY(x_values, y_values):
-    popt = GetParametersOfCurveFit(x_values, y_values)
-    power_y = popt[0]*x_values**-popt[1]
-    return power_y
+print("")
 
+print("POWER CURVE PARAMETER:")
+print("a: " + str(GetParametersOfCurveFit(x, y)[0]))
+print("b: " + str(GetParametersOfCurveFit(x, y)[1]))
+print("----------")
 
-def GetRSquared(x_num, y_num):
-    xdata = np.array(x_num)
-    ydata = np.array(y_num)
-    residuals = ydata - PowerLawFunction(xdata, * GetParametersOfCurveFit(x_num, y_num))
-    ss_res = np.sum(residuals**2)
-    ss_tot = np.sum((ydata-np.mean(ydata))**2)
-    r_squared = 1 - (ss_res / ss_tot)
-    r_squared = round(r_squared, 3)
-    return r_squared
+print("LTV OVERVIEW:")
+print("LTV: $" + str(GetLTV(arpdau, end_day, x, y)))
+print("LTV Lifetime: " + str(GetLifetimeDays(end_day, x, y)))
+print("ROAS: " + str(ROASCalculator(GetLTV(arpdau, end_day, x, y), cpi)) + "%")
+print("----------")
 
+break_even_day = CalculateBreakEvenDay(x, y, roas, arpdau, cpi)
 
-def ShowPlot(user_input_x, user_input_y, benchmark_x, benchmark_y, ltv_num, arpdau_num):
-    # Add the original data to the chart (data points of x and y)
-    plt.scatter(user_input_x, user_input_y, label='User Input Data')
-    # Add the curve_fit data to the chart (data points from powerfunction)
-    plt.plot(user_input_x, GetPowerY(user_input_x, user_input_y), "r-", label="User Input Fit: a=%5.3f, b=%5.3f" % tuple(GetParametersOfCurveFit(user_input_x, user_input_y)))
-    
-    # Add benchmark data to the chart
-    plt.scatter(benchmark_x, benchmark_y, label='Benchmark Data')
-    plt.plot(benchmark_x, GetPowerY(benchmark_x, benchmark_y), "g-", label="Benchmark Fit: a=%5.3f, b=%5.3f" % tuple(GetParametersOfCurveFit(benchmark_x, benchmark_y)))
-    
-    # Add title and subtitle to the plot
-    plt.suptitle("Retention Plot")
-    plt.title("R-Squared (your input): " + str(round(GetRSquared(user_input_x, user_input_y), 4)))
-    plt.xlabel('x Days') # Name the x axis of the plot
-    plt.ylabel('y Retention %') # Name the y axis of the plot
-    plt.legend() # Add a legend to the plot
-    st.pyplot(plt)
+df_ltv_values = pd.DataFrame.from_dict(GetDetailedDayLTV(arpdau, x, y, end_day), orient='index')
 
+def display_results():
+    st.header('📊 Results')
 
-def ShowLTVCPIPlot(ltv_num, cpi_num, ltv_dict_obj, cpi_recoup_obj):
-    plt.clf()
-    #unpack and sort the dict of LTV values
-    plt.plot(*zip(*sorted(ltv_dict_obj.items())), label="LTV over time")
-    # add the CPI value as horizontal line
-    plt.axhline(y=cpi_num, color='r', linestyle='-', label="CPI (constant)")
-    
-    if cpi_recoup_obj != 0:
-        plt.annotate(f'ROAS Goal {roas}% Recoup Day: {cpi_recoup_obj}', xy=(cpi_recoup_obj, cpi_num),
-                     xytext=(cpi_recoup_obj + 5, cpi_num + 0.1),
-                     arrowprops=dict(facecolor='black', arrowstyle='->'),
-                     fontsize=8)
-    
-    plt.suptitle("LTV Plot (your input): LTV(Day "+ str(end_day)+"): " + str(ltv_num) + " " + currency)
-    plt.title("CPI: " + str(round(cpi_num, 4)) + " " + currency + " - " + "Breakeven Day (ROAS Goal): " + str(round(cpi_recoup_obj, 4)))
-    plt.xlabel('x Days') #name the x axis of the plot
-    plt.ylabel('y USD') #name the y axis of the plot
-    plt.legend() #add a legend to the plot
-    st.pyplot(plt)
+    st.subheader("Input Parameters")
+    st.write("**Day 1 Retention:** ", day_1_retention)
+    st.write("**Day 7 Retention:** ", day_7_retention)
+    st.write("**Day 30 Retention:** ", day_30_retention)
+    st.write("**ARPDAU:** ", currency + str(arpdau))
+    st.write("**CPI:** ", currency + str(cpi))
+    st.write("**ROAS Goal:** ", str(roas) + "%")
 
+    st.subheader("Predicted Metrics")
+    st.write("**Power Curve Parameters:**")
+    st.write("a: " + str(GetParametersOfCurveFit(x, y)[0]))
+    st.write("b: " + str(GetParametersOfCurveFit(x, y)[1]))
 
+    st.write("**LTV:** ", currency + str(GetLTV(arpdau, end_day, x, y)))
+    st.write("**LTV Lifetime:** ", str(GetLifetimeDays(end_day, x, y)))
+    st.write("**ROAS:** ", str(ROASCalculator(GetLTV(arpdau, end_day, x, y), cpi)) + "%")
+    st.write("**Break Even Day:** ", str(break_even_day) if break_even_day else "Not reached within 720 days")
 
-ltv_end_day_float = GetLTV(arpdau, end_day, x, y) #user ltv
-ShowPlot(x, y,benchmark_x,benchmark_y, ltv_end_day_float, arpdau)
-detailed_ltv_dict = GetDetailedDayLTV(arpdau, x, y, end_day) #LTV dict user
-cpi_recoup_day = FindRecoupCPIDay(arpdau, cpi, roas, end_day, x, y)
-ShowLTVCPIPlot(ltv_end_day_float, cpi, detailed_ltv_dict, cpi_recoup_day)
+    st.subheader("LTV Overview")
+    ltv_dict = GetStandardDayLTV(arpdau, x, y)
+    for day, ltv in ltv_dict.items():
+        st.write(f"LTV (D{day}): ${ltv}")
+
+    st.subheader("Detailed LTV Values")
+    st.write(df_ltv_values)
+
+    st.subheader("Retention Rate Curves")
+    fig, ax = plt.subplots()
+    days_range = np.arange(1, end_day + 1)
+    fitted_curve = PowerLawFunction(days_range, GetParametersOfCurveFit(x, y)[0], GetParametersOfCurveFit(x, y)[1])
+    ax.plot(days_range, fitted_curve, label='Fitted Retention Curve')
+    ax.scatter(x, y, color='red', label='Input Data')
+    ax.set_xlabel('Days')
+    ax.set_ylabel('Retention Rate')
+    ax.set_title('Retention Rate Curve')
+    ax.legend()
+    st.pyplot(fig)
+
+display_results()
+
+st.markdown("Benchmark data used in this application is sourced from [GameAnalytics](https://gameanalytics.com).")
+
 
 
 
